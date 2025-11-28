@@ -41,6 +41,24 @@ func TestPart2(t *testing.T) {
 	}
 }
 
+func TestPart3(t *testing.T) {
+	input1, _ := os.ReadFile("input_test3.txt")
+	input2, _ := os.ReadFile("input3.txt")
+	tests := []struct {
+		input    []byte
+		expected string
+	}{
+		{input1, "Drakzyph"},
+		{input2, "Myndcion"},
+	}
+	for _, test := range tests {
+		result := part3(test.input)
+		if result != test.expected {
+			t.Errorf("Result %v not equal to expected %v", result, test.expected)
+		}
+	}
+}
+
 func BenchmarkPart1(b *testing.B) {
 	input, _ := os.ReadFile("input1.txt")
 	for n := 0; n < b.N; n++ {
@@ -52,5 +70,12 @@ func BenchmarkPart2(b *testing.B) {
 	input, _ := os.ReadFile("input2.txt")
 	for n := 0; n < b.N; n++ {
 		part2(input)
+	}
+}
+
+func BenchmarkPart3(b *testing.B) {
+	input, _ := os.ReadFile("input3.txt")
+	for n := 0; n < b.N; n++ {
+		part3(input)
 	}
 }
