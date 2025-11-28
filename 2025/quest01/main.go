@@ -18,47 +18,18 @@ func main() {
 }
 
 func part1(input []byte) string {
-	split := strings.Split(strings.TrimSpace(string(input)), "\n\n")
-	names := strings.Split(split[0], ",")
-	instructions := strings.Split(split[1], ",")
-	i, n := 0, len(names)-1
-	for _, instruction := range instructions {
-		dir, steps := instruction[0], StrToInt(instruction[1:])
-		operand := 1
-		if dir == 'L' {
-			operand = -1
-		}
-		i = i + (steps * operand)
-		if i < 0 {
-			i = 0
-		}
-		if i > n {
-			i = n
-		}
-	}
-	return names[i]
+	return navigateNames(input, false, false)
 }
 
 func part2(input []byte) string {
-	split := strings.Split(strings.TrimSpace(string(input)), "\n\n")
-	names := strings.Split(split[0], ",")
-	instructions := strings.Split(split[1], ",")
-	i, n := 0, len(names)
-	for _, instruction := range instructions {
-		dir, steps := instruction[0], StrToInt(instruction[1:])
-		operand := 1
-		if dir == 'L' {
-			operand = -1
-		}
-		i = (i + (steps * operand)) % n
-		if i < 0 {
-			i += n
-		}
-	}
-	return names[i]
+	return navigateNames(input, true, false)
 }
 
 func part3(input []byte) string {
+	return navigateNames(input, true, true)
+}
+
+func navigateNames(input []byte, isCircle, canSwap bool) string {
 	split := strings.Split(strings.TrimSpace(string(input)), "\n\n")
 	names := strings.Split(split[0], ",")
 	instructions := strings.Split(split[1], ",")
@@ -69,12 +40,24 @@ func part3(input []byte) string {
 		if dir == 'L' {
 			operand = -1
 		}
+		if !isCircle {
+			i = i + (steps * operand)
+			if i < 0 {
+				i = 0
+			}
+			if i > n-1 {
+				i = n - 1
+			}
+			continue
+		}
 		i = (i + (steps * operand)) % n
 		if i < 0 {
 			i += n
 		}
-		names[0], names[i] = names[i], names[0]
-		i = 0
+		if canSwap {
+			names[0], names[i] = names[i], names[0]
+			i = 0
+		}
 	}
 	return names[i]
 }
