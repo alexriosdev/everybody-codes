@@ -10,9 +10,11 @@ import (
 func main() {
 	input1, _ := os.ReadFile("2025/quest02/input1.txt")
 	input2, _ := os.ReadFile("2025/quest02/input2.txt")
+	input3, _ := os.ReadFile("2025/quest02/input3.txt")
 	fmt.Println("2025 Quest 02 Solution")
 	fmt.Printf("Part 1: %v\n", part1(input1))
 	fmt.Printf("Part 2: %v\n", part2(input2))
+	fmt.Printf("Part 3: %v\n", part3(input3))
 }
 
 func part1(input []byte) string {
@@ -30,9 +32,21 @@ func part2(input []byte) int {
 	split := strings.Fields(replacer.Replace(string(input)))
 	start := Complex{StrToInt64(split[0]), StrToInt64(split[1])}
 	end := Complex{start.X + 1_000, start.Y + 1_000}
+	return getCount(start, end, 10)
+}
+
+func part3(input []byte) int {
+	replacer := strings.NewReplacer("A", "", "=", "", "[", "", ",", " ", "]", "")
+	split := strings.Fields(replacer.Replace(string(input)))
+	start := Complex{StrToInt64(split[0]), StrToInt64(split[1])}
+	end := Complex{start.X + 1_000, start.Y + 1_000}
+	return getCount(start, end, 1)
+}
+
+func getCount(start, end Complex, inc int64) int {
 	count := 0
-	for x := start.X; x <= end.X; x += 10 {
-		for y := start.Y; y <= end.Y; y += 10 {
+	for x := start.X; x <= end.X; x += inc {
+		for y := start.Y; y <= end.Y; y += inc {
 			addend := Complex{x, y}
 			divisor := Complex{100_000, 100_000}
 			result := Complex{0, 0}
