@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -9,14 +10,22 @@ import (
 
 func main() {
 	input1, _ := os.ReadFile("2025/quest04/input1.txt")
+	input2, _ := os.ReadFile("2025/quest04/input2.txt")
 	fmt.Println("2025 Quest 04 Solution")
 	fmt.Printf("Part 1: %v\n", part1(input1))
+	fmt.Printf("Part 2: %v\n", part2(input2))
 }
 
 func part1(input []byte) int {
 	split := strings.Split(strings.TrimSpace(string(input)), "\n")
 	first, last := StrToFloat(split[0]), StrToFloat(split[len(split)-1])
 	return int((first / last) * 2025)
+}
+
+func part2(input []byte) int {
+	split := strings.Split(strings.TrimSpace(string(input)), "\n")
+	first, last := StrToFloat(split[0]), StrToFloat(split[len(split)-1])
+	return int(math.Ceil((last * 10000000000000) / first))
 }
 
 func StrToFloat(s string) float64 {
