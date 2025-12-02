@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -11,9 +12,11 @@ import (
 func main() {
 	input1, _ := os.ReadFile("2025/quest05/input1.txt")
 	input2, _ := os.ReadFile("2025/quest05/input2.txt")
+	input3, _ := os.ReadFile("2025/quest05/input3.txt")
 	fmt.Println("2025 Quest 05 Solution")
 	fmt.Printf("Part 1: %v\n", part1(input1))
 	fmt.Printf("Part 2: %v\n", part2(input2))
+	fmt.Printf("Part 2: %v\n", part3(input3))
 }
 
 func part1(input []byte) int64 {
@@ -40,8 +43,59 @@ func part2(input []byte) int64 {
 	return maxQuality - minQuality
 }
 
+func part3(input []byte) int64 {
+	lines := strings.Split(strings.TrimSpace(string(input)), "\n")
+	swords := Swords{}
+	for _, line := range lines {
+		split := strings.Split(line, ":")
+		fishbone := Fishbone{ID: StrToInt(split[0])}
+		for _, s := range strings.Split(split[1], ",") {
+			fishbone.Add(StrToInt(s))
+		}
+		fishbone.GenerateLevels()
+		swords.Add(fishbone)
+	}
+	swords.Sort()
+	return swords.Checksum()
+}
+
+type Swords struct {
+	Fishbones []Fishbone
+}
+
+func (s *Swords) Add(fishbone Fishbone) {
+	s.Fishbones = append(s.Fishbones, fishbone)
+}
+
+func (s *Swords) Sort() {
+	fishbones := s.Fishbones
+	sort.Slice(fishbones, func(i, j int) bool {
+		if fishbones[i].Quality() != fishbones[j].Quality() {
+			return fishbones[i].Quality() > fishbones[j].Quality()
+		} else if fishbones[i].Quality() == fishbones[j].Quality() {
+			a, b := fishbones[i].Levels, fishbones[j].Levels
+			for k, l := 0, 0; k < len(a) && l < len(b); k, l = k+1, k+1 {
+				if a[k] != b[l] {
+					return a[k] > b[l]
+				}
+			}
+		}
+		return fishbones[i].ID > fishbones[j].ID
+	})
+}
+
+func (s *Swords) Checksum() int64 {
+	sum := int64(0)
+	for i, fishbone := range s.Fishbones {
+		sum += int64((i + 1) * fishbone.ID)
+	}
+	return sum
+}
+
 type Fishbone struct {
+	ID       int
 	Segments []Segment
+	Levels   []int
 }
 
 func (f *Fishbone) Add(num int) {
@@ -59,6 +113,23 @@ func (f *Fishbone) Quality() int64 {
 		quality.WriteString(strconv.Itoa(segment.Mid))
 	}
 	return StrToInt64(quality.String())
+}
+
+func (f *Fishbone) GenerateLevels() {
+	sb := strings.Builder{}
+	for _, segment := range f.Segments {
+		if segment.Left > 0 {
+			sb.WriteString(strconv.Itoa(segment.Left))
+		}
+		if segment.Mid > 0 {
+			sb.WriteString(strconv.Itoa(segment.Mid))
+		}
+		if segment.Right > 0 {
+			sb.WriteString(strconv.Itoa(segment.Right))
+		}
+		f.Levels = append(f.Levels, StrToInt(sb.String()))
+		sb.Reset()
+	}
 }
 
 func (f *Fishbone) Print() {
