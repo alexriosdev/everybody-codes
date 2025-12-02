@@ -1,44 +1,43 @@
 package main
 
 import (
+	"everybody-codes/utils"
 	"fmt"
-	"os"
-	"strconv"
 	"strings"
 )
 
 func main() {
-	input1, _ := os.ReadFile("2025/quest02/input1.txt")
-	input2, _ := os.ReadFile("2025/quest02/input2.txt")
-	input3, _ := os.ReadFile("2025/quest02/input3.txt")
+	line1, _ := utils.ReadLine("2025/quest02/input1.txt")
+	line2, _ := utils.ReadLine("2025/quest02/input2.txt")
+	line3, _ := utils.ReadLine("2025/quest02/input3.txt")
 	fmt.Println("2025 Quest 02 Solution")
-	fmt.Printf("Part 1: %v\n", part1(input1))
-	fmt.Printf("Part 2: %v\n", part2(input2))
-	fmt.Printf("Part 3: %v\n", part3(input3))
+	fmt.Printf("Part 1: %v\n", part1(line1))
+	fmt.Printf("Part 2: %v\n", part2(line2))
+	fmt.Printf("Part 3: %v\n", part3(line3))
 }
 
-func part1(input []byte) string {
+func part1(line string) string {
 	replacer := strings.NewReplacer("A", "", "=", "", "[", "", ",", " ", "]", "")
-	split := strings.Fields(replacer.Replace(string(input)))
-	addend := Complex{StrToInt64(split[0]), StrToInt64(split[1])}
+	split := strings.Fields(replacer.Replace(line))
+	addend := Complex{utils.StrToInt64(split[0]), utils.StrToInt64(split[1])}
 	divisor := Complex{10, 10}
 	result := Complex{0, 0}
 	result.Cycle(addend, divisor, 3)
 	return result.ToString()
 }
 
-func part2(input []byte) int {
+func part2(line string) int {
 	replacer := strings.NewReplacer("A", "", "=", "", "[", "", ",", " ", "]", "")
-	split := strings.Fields(replacer.Replace(string(input)))
-	start := Complex{StrToInt64(split[0]), StrToInt64(split[1])}
+	split := strings.Fields(replacer.Replace(line))
+	start := Complex{utils.StrToInt64(split[0]), utils.StrToInt64(split[1])}
 	end := Complex{start.X + 1_000, start.Y + 1_000}
 	return getCount(start, end, 10)
 }
 
-func part3(input []byte) int {
+func part3(line string) int {
 	replacer := strings.NewReplacer("A", "", "=", "", "[", "", ",", " ", "]", "")
-	split := strings.Fields(replacer.Replace(string(input)))
-	start := Complex{StrToInt64(split[0]), StrToInt64(split[1])}
+	split := strings.Fields(replacer.Replace(line))
+	start := Complex{utils.StrToInt64(split[0]), utils.StrToInt64(split[1])}
 	end := Complex{start.X + 1_000, start.Y + 1_000}
 	return getCount(start, end, 1)
 }
@@ -96,9 +95,4 @@ func (a *Complex) IsEngraved() bool {
 
 func (a *Complex) ToString() string {
 	return fmt.Sprintf("[%v,%v]", a.X, a.Y)
-}
-
-func StrToInt64(s string) int64 {
-	num, _ := strconv.Atoi(s)
-	return int64(num)
 }

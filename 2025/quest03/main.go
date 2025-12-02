@@ -1,28 +1,27 @@
 package main
 
 import (
+	"everybody-codes/utils"
 	"fmt"
-	"os"
 	"sort"
-	"strconv"
 	"strings"
 )
 
 func main() {
-	input1, _ := os.ReadFile("2025/quest03/input1.txt")
-	input2, _ := os.ReadFile("2025/quest03/input2.txt")
-	input3, _ := os.ReadFile("2025/quest03/input3.txt")
+	line1, _ := utils.ReadLine("2025/quest03/input1.txt")
+	line2, _ := utils.ReadLine("2025/quest03/input2.txt")
+	line3, _ := utils.ReadLine("2025/quest03/input3.txt")
 	fmt.Println("2025 Quest 03 Solution")
-	fmt.Printf("Part 1: %v\n", part1(input1))
-	fmt.Printf("Part 2: %v\n", part2(input2))
-	fmt.Printf("Part 3: %v\n", part3(input3))
+	fmt.Printf("Part 1: %v\n", part1(line1))
+	fmt.Printf("Part 2: %v\n", part2(line2))
+	fmt.Printf("Part 3: %v\n", part3(line3))
 }
 
-func part1(input []byte) int {
-	split := strings.Split(strings.TrimSpace(string(input)), ",")
+func part1(line string) int {
+	split := strings.Split(line, ",")
 	set := map[int]bool{}
 	for _, s := range split {
-		set[StrToInt(s)] = true
+		set[utils.StrToInt(s)] = true
 	}
 	sum := 0
 	for num := range set {
@@ -31,11 +30,11 @@ func part1(input []byte) int {
 	return sum
 }
 
-func part2(input []byte) int {
-	split := strings.Split(strings.TrimSpace(string(input)), ",")
+func part2(line string) int {
+	split := strings.Split(line, ",")
 	set := map[int]bool{}
 	for _, s := range split {
-		set[StrToInt(s)] = true
+		set[utils.StrToInt(s)] = true
 	}
 	uniqueNums := []int{}
 	for num := range set {
@@ -49,20 +48,15 @@ func part2(input []byte) int {
 	return sum
 }
 
-func part3(input []byte) int {
-	split := strings.Split(strings.TrimSpace(string(input)), ",")
+func part3(line string) int {
+	split := strings.Split(line, ",")
 	freq := map[int]int{}
 	for _, s := range split {
-		freq[StrToInt(s)]++
+		freq[utils.StrToInt(s)]++
 	}
 	count := 0
 	for _, v := range freq {
 		count = max(count, v)
 	}
 	return count
-}
-
-func StrToInt(s string) int {
-	num, _ := strconv.Atoi(s)
-	return num
 }

@@ -1,41 +1,42 @@
 package main
 
 import (
+	"everybody-codes/utils"
 	"fmt"
 	"math"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	input1, _ := os.ReadFile("2025/quest05/input1.txt")
-	input2, _ := os.ReadFile("2025/quest05/input2.txt")
-	input3, _ := os.ReadFile("2025/quest05/input3.txt")
+	lines1, _ := utils.ReadLines("2025/quest05/input1.txt")
+	lines2, _ := utils.ReadLines("2025/quest05/input2.txt")
+	lines3, _ := utils.ReadLines("2025/quest05/input3.txt")
 	fmt.Println("2025 Quest 05 Solution")
-	fmt.Printf("Part 1: %v\n", part1(input1))
-	fmt.Printf("Part 2: %v\n", part2(input2))
-	fmt.Printf("Part 2: %v\n", part3(input3))
+	fmt.Printf("Part 1: %v\n", part1(lines1))
+	fmt.Printf("Part 2: %v\n", part2(lines2))
+	fmt.Printf("Part 2: %v\n", part3(lines3))
 }
 
-func part1(input []byte) int64 {
-	split := strings.Split(strings.TrimSpace(string(input)), ":")
+func part1(lines []string) int64 {
 	fishbone := Fishbone{}
-	for _, s := range strings.Split(split[1], ",") {
-		fishbone.Add(StrToInt(s))
+	for _, line := range lines {
+		split := strings.Split(line, ":")
+		for _, s := range strings.Split(split[1], ",") {
+			fishbone.Add(utils.StrToInt(s))
+		}
 	}
 	return fishbone.Quality()
 }
 
-func part2(input []byte) int64 {
-	lines := strings.Split(strings.TrimSpace(string(input)), "\n")
+func part2(lines []string) int64 {
 	maxQuality, minQuality := int64(math.MinInt64), int64(math.MaxInt64)
 	for _, line := range lines {
 		split := strings.Split(line, ":")
 		fishbone := Fishbone{}
 		for _, s := range strings.Split(split[1], ",") {
-			fishbone.Add(StrToInt(s))
+			fishbone.Add(utils.StrToInt(s))
 		}
 		maxQuality = max(maxQuality, fishbone.Quality())
 		minQuality = min(minQuality, fishbone.Quality())
@@ -43,14 +44,13 @@ func part2(input []byte) int64 {
 	return maxQuality - minQuality
 }
 
-func part3(input []byte) int64 {
-	lines := strings.Split(strings.TrimSpace(string(input)), "\n")
+func part3(lines []string) int64 {
 	swords := Swords{}
 	for _, line := range lines {
 		split := strings.Split(line, ":")
-		fishbone := Fishbone{ID: StrToInt(split[0])}
+		fishbone := Fishbone{ID: utils.StrToInt(split[0])}
 		for _, s := range strings.Split(split[1], ",") {
-			fishbone.Add(StrToInt(s))
+			fishbone.Add(utils.StrToInt(s))
 		}
 		fishbone.GenerateLevels()
 		swords.Add(fishbone)
@@ -112,7 +112,7 @@ func (f *Fishbone) Quality() int64 {
 	for _, segment := range f.Segments {
 		quality.WriteString(strconv.Itoa(segment.Mid))
 	}
-	return StrToInt64(quality.String())
+	return utils.StrToInt64(quality.String())
 }
 
 func (f *Fishbone) GenerateLevels() {
@@ -127,7 +127,7 @@ func (f *Fishbone) GenerateLevels() {
 		if segment.Right > 0 {
 			sb.WriteString(strconv.Itoa(segment.Right))
 		}
-		f.Levels = append(f.Levels, StrToInt(sb.String()))
+		f.Levels = append(f.Levels, utils.StrToInt(sb.String()))
 		sb.Reset()
 	}
 }
@@ -155,14 +155,4 @@ func (s *Segment) Add(num int) bool {
 		return true
 	}
 	return false
-}
-
-func StrToInt(s string) int {
-	num, _ := strconv.Atoi(s)
-	return num
-}
-
-func StrToInt64(s string) int64 {
-	num, _ := strconv.ParseInt(s, 10, 64)
-	return num
 }
