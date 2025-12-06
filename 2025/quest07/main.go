@@ -33,8 +33,21 @@ func part1(input []byte) string {
 	return ""
 }
 
-func part2(input []byte) string {
-	return ""
+func part2(input []byte) int {
+	sections := strings.Split(strings.TrimSpace(string(input)), "\n\n")
+	replacer := strings.NewReplacer(">", "", ",", "", " ", "")
+	rules := map[rune][]rune{}
+	for _, s := range strings.Split(sections[1], "\n") {
+		runes := []rune(replacer.Replace(s))
+		rules[runes[0]] = append(rules[runes[0]], runes[1:]...)
+	}
+	sum := 0
+	for i, name := range strings.Split(sections[0], ",") {
+		if isValidName(name, rules) {
+			sum += (i + 1)
+		}
+	}
+	return sum
 }
 
 func part3(input []byte) string {

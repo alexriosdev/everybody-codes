@@ -28,10 +28,10 @@ func TestPart2(t *testing.T) {
 	input2, _ := os.ReadFile("input2.txt")
 	tests := []struct {
 		input    []byte
-		expected string
+		expected int
 	}{
-		{input1, ""},
-		{input2, ""},
+		{input1, 23},
+		{input2, 2191},
 	}
 	for _, test := range tests {
 		result := part2(test.input)
