@@ -43,13 +43,15 @@ func TestPart2(t *testing.T) {
 
 func TestPart3(t *testing.T) {
 	input1, _ := os.ReadFile("input_test3.txt")
-	input2, _ := os.ReadFile("input3.txt")
+	input2, _ := os.ReadFile("input_test4.txt")
+	input3, _ := os.ReadFile("input3.txt")
 	tests := []struct {
 		input    []byte
-		expected string
+		expected int
 	}{
-		{input1, ""},
-		{input2, ""},
+		{input1, 25},
+		{input2, 1154},
+		{input3, 3085394},
 	}
 	for _, test := range tests {
 		result := part3(test.input)

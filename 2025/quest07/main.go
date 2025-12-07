@@ -44,14 +44,40 @@ func part2(input []byte) int {
 	sum := 0
 	for i, name := range strings.Split(sections[0], ",") {
 		if isValidName(name, rules) {
-			sum += (i + 1)
+			sum += i + 1
 		}
 	}
 	return sum
 }
 
-func part3(input []byte) string {
-	return ""
+func part3(input []byte) int {
+	sections := strings.Split(strings.TrimSpace(string(input)), "\n\n")
+	replacer := strings.NewReplacer(">", "", ",", "", " ", "")
+	rules := map[rune][]rune{}
+	for _, s := range strings.Split(sections[1], "\n") {
+		runes := []rune(replacer.Replace(s))
+		rules[runes[0]] = append(rules[runes[0]], runes[1:]...)
+	}
+	unique := map[string]bool{}
+	names := strings.Split(sections[0], ",")
+	for len(names) > 0 {
+		name := names[0]
+		names = names[1:]
+		runes := []rune(name)
+		if 7 <= len(runes) {
+			unique[name] = true
+		}
+		last := runes[len(runes)-1]
+		for _, r := range rules[last] {
+			runes = append(runes, r)
+			name = string(runes)
+			if isValidName(name, rules) && len(runes) <= 11 {
+				names = append(names, string(runes))
+			}
+			runes = runes[:len(runes)-1]
+		}
+	}
+	return len(unique)
 }
 
 func isValidName(name string, rules map[rune][]rune) bool {
