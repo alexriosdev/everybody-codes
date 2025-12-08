@@ -21,13 +21,11 @@ func part1(lines string, nails int) int {
 	count := 0
 	split := strings.Split(lines, ",")
 	for i := 0; i < len(split)-1; i++ {
-		a, b := utils.StrToInt(split[i]), utils.StrToInt(split[i+1])
-		switch {
-		case ((a+delta)%nails) == b && ((b+delta)%nails) == a:
-			count++
-		case a == delta && ((b+delta)%nails) == a:
-			count++
-		case b == delta && ((a+delta)%nails) == b:
+		start, end := utils.StrToInt(split[i]), utils.StrToInt(split[i+1])
+		if start > end {
+			start, end = end, start
+		}
+		if end-start == delta {
 			count++
 		}
 	}
