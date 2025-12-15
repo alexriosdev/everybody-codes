@@ -44,17 +44,18 @@ func TestPart2(t *testing.T) {
 }
 
 func TestPart3(t *testing.T) {
-	lines1, _ := utils.ReadLines("input_test3.txt")
-	lines2, _ := utils.ReadLines("input3.txt")
+	line1, _ := utils.ReadLine("input_test3.txt")
+	line2, _ := utils.ReadLine("input3.txt")
 	tests := []struct {
-		input    []string
+		input    string
+		nails    int
 		expected int
 	}{
-		{lines1, 0},
-		{lines2, 0},
+		{line1, 8, 7},
+		{line2, 256, 2797},
 	}
 	for _, test := range tests {
-		result := part3(test.input)
+		result := part3(test.input, test.nails)
 		if result != test.expected {
 			t.Errorf("Result %v not equal to expected %v", result, test.expected)
 		}
@@ -76,8 +77,8 @@ func BenchmarkPart2(b *testing.B) {
 }
 
 func BenchmarkPart3(b *testing.B) {
-	lines, _ := utils.ReadLines("input3.txt")
+	lines, _ := utils.ReadLine("input3.txt")
 	for n := 0; n < b.N; n++ {
-		part3(lines)
+		part3(lines, 256)
 	}
 }
