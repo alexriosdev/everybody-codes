@@ -24,11 +24,29 @@ func part1(lines []string) int {
 		scales.Add(NewScale(split[1]))
 	}
 	scales.SortByChild()
-	return scales.CalculateDegreesOfSimilarity()
+	return scales.CalculateDegreeOfSimilarity()
 }
 
 func part2(lines []string) int {
-	return len(lines)
+	scales := Scales{}
+	for _, line := range lines {
+		split := strings.Split(line, ":")
+		scales.Add(NewScale(split[1]))
+	}
+	sum := 0
+	for i := 0; i < len(scales); i++ {
+		for j := i + 1; j < len(scales); j++ {
+			for k := j + 1; k < len(scales); k++ {
+				newScales := Scales{scales[i], scales[j], scales[k]}
+				newScales.SortByChild()
+				if newScales[0].IsChild == len(newScales[0].DNA) {
+					sum += newScales.CalculateDegreeOfSimilarity()
+				}
+				newScales.ResetChild()
+			}
+		}
+	}
+	return sum
 }
 
 func part3(lines []string) int {
@@ -74,7 +92,7 @@ func (s *Scales) SortByChild() {
 	})
 }
 
-func (s *Scales) CalculateDegreesOfSimilarity() int {
+func (s *Scales) CalculateDegreeOfSimilarity() int {
 	a, b, c := (*s)[0], (*s)[1], (*s)[2]
 	degreeA, degreeB := 0, 0
 	for i := range a.DNA {
@@ -86,4 +104,11 @@ func (s *Scales) CalculateDegreesOfSimilarity() int {
 		}
 	}
 	return degreeA * degreeB
+}
+
+func (s *Scales) ResetChild() {
+	a, b, c := (*s)[0], (*s)[1], (*s)[2]
+	a.IsChild = 0
+	b.IsChild = 0
+	c.IsChild = 0
 }
