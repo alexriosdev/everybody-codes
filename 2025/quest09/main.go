@@ -22,7 +22,7 @@ func part1(lines []string) int {
 		split := strings.Split(line, ":")
 		scales.Add(NewScale(split[0], split[1]))
 	}
-	child := scales.AssignParents()
+	child := scales.AssignFamily()
 	return child.CalculateDegreeOfSimilarity()
 }
 
@@ -37,7 +37,7 @@ func part2(lines []string) int {
 		for j := i + 1; j < len(scales); j++ {
 			for k := j + 1; k < len(scales); k++ {
 				newScales := Scales{scales[i], scales[j], scales[k]}
-				if child := newScales.AssignParents(); child != nil {
+				if child := newScales.AssignFamily(); child != nil {
 					sum += child.CalculateDegreeOfSimilarity()
 				}
 			}
@@ -58,7 +58,7 @@ func part3(lines []string) int {
 		for j := i + 1; j < len(scales); j++ {
 			for k := j + 1; k < len(scales); k++ {
 				newScales := Scales{scales[i], scales[j], scales[k]}
-				if child := newScales.AssignParents(); child != nil && maxDepth < child.Depth {
+				if child := newScales.AssignFamily(); child != nil && maxDepth < child.Depth {
 					maxDepth = child.Depth
 					root = child
 				}
@@ -66,7 +66,7 @@ func part3(lines []string) int {
 		}
 	}
 	sum := 0
-	visited := make(map[int]bool)
+	visited := map[int]bool{}
 	queue := []*Scale{root}
 	for len(queue) > 0 {
 		curr := queue[0]
@@ -105,6 +105,14 @@ func NewScale(s1, s2 string) *Scale {
 	}
 }
 
+func (s *Scale) AssignParents(a, b *Scale) {
+	s.ParentA = a
+	s.ParentB = b
+	s.ParentA.Children[s] = true
+	s.ParentB.Children[s] = true
+	s.Depth = s.ParentA.Depth + s.ParentB.Depth
+}
+
 func (s *Scale) CalculateDegreeOfSimilarity() int {
 	degreeA, degreeB := 0, 0
 	for i := range s.DNA {
@@ -124,7 +132,7 @@ func (s *Scales) Add(scale *Scale) {
 	*s = append(*s, scale)
 }
 
-func (s *Scales) AssignParents() *Scale {
+func (s *Scales) AssignFamily() *Scale {
 	a, b, c := (*s)[0], (*s)[1], (*s)[2]
 	aCount, bCount, cCount := 0, 0, 0
 	for i := range a.DNA {
@@ -146,25 +154,13 @@ func (s *Scales) AssignParents() *Scale {
 	}
 	switch {
 	case aCount == len(a.DNA):
-		a.ParentA = b
-		a.ParentB = c
-		a.ParentA.Children[a] = true
-		a.ParentB.Children[a] = true
-		a.Depth = a.ParentA.Depth + a.ParentB.Depth
+		a.AssignParents(b, c)
 		return a
 	case bCount == len(a.DNA):
-		b.ParentA = a
-		b.ParentB = c
-		b.ParentA.Children[b] = true
-		b.ParentB.Children[b] = true
-		b.Depth = b.ParentA.Depth + b.ParentB.Depth
+		b.AssignParents(a, c)
 		return b
 	case cCount == len(a.DNA):
-		c.ParentA = a
-		c.ParentB = b
-		c.ParentA.Children[c] = true
-		c.ParentB.Children[c] = true
-		c.Depth = c.ParentA.Depth + c.ParentB.Depth
+		c.AssignParents(a, b)
 		return c
 	}
 	return nil
