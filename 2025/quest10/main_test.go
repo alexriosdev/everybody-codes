@@ -29,13 +29,14 @@ func TestPart2(t *testing.T) {
 	lines2, _ := utils.ReadLines("input2.txt")
 	tests := []struct {
 		input    []string
+		moves    int
 		expected int
 	}{
-		{lines1, 0},
-		{lines2, 0},
+		{lines1, 3, 27},
+		{lines2, 20, 1669},
 	}
 	for _, test := range tests {
-		result := part2(test.input)
+		result := part2(test.input, test.moves)
 		if result != test.expected {
 			t.Errorf("Result %v not equal to expected %v", result, test.expected)
 		}
@@ -70,7 +71,7 @@ func BenchmarkPart1(b *testing.B) {
 func BenchmarkPart2(b *testing.B) {
 	lines, _ := utils.ReadLines("input2.txt")
 	for n := 0; n < b.N; n++ {
-		part2(lines)
+		part2(lines, 20)
 	}
 }
 
