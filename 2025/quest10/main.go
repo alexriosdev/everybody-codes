@@ -106,7 +106,64 @@ func part2(lines []string, moves int) int {
 }
 
 func part3(lines []string) int {
-	return len(lines)
+	const (
+		DragonTurn = iota
+		SheepTurn
+	)
+	dragonDirs := []Coordinate{{-2, 1}, {-2, -1}, {1, 2}, {-1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}}
+	grid := NewGrid(lines)
+	sheep := grid.GetAll('S')
+	dragon := grid.Get('D')
+	visited := map[string]int{}
+	var dfs func(sheep []Coordinate, dragon Coordinate, turn int) int
+	dfs = func(sheep []Coordinate, dragon Coordinate, turn int) int {
+		if len(sheep) == 0 {
+			return 1
+		}
+		key := fmt.Sprint(sheep, dragon, turn)
+		if val, ok := visited[key]; ok {
+			return val
+		}
+		count := 0
+		switch turn {
+		case SheepTurn:
+			canMove := false
+			for i, s := range sheep {
+				next := Coordinate{s.Y + 1, s.X}
+				if next.Y == len(*grid) {
+					canMove = true
+					continue
+				}
+				if grid.Equals(next, '#') || next != dragon {
+					canMove = true
+					newSheep := make([]Coordinate, len(sheep))
+					copy(newSheep, sheep)
+					newSheep[i] = next
+					count += dfs(newSheep, dragon, DragonTurn)
+				}
+			}
+			if !canMove {
+				count += dfs(sheep, dragon, DragonTurn)
+			}
+		case DragonTurn:
+			for _, dir := range dragonDirs {
+				next := Coordinate{dragon.Y + dir.Y, dragon.X + dir.X}
+				if !grid.IsInBounds(next) {
+					continue
+				}
+				newSheep := []Coordinate{}
+				for _, s := range sheep {
+					if grid.Equals(s, '#') || s != next {
+						newSheep = append(newSheep, s)
+					}
+				}
+				count += dfs(newSheep, next, SheepTurn)
+			}
+		}
+		visited[key] = count
+		return count
+	}
+	return dfs(sheep, dragon, SheepTurn)
 }
 
 type Coordinate struct {
