@@ -18,13 +18,14 @@ func main() {
 func part1(lines []string, rounds int) int {
 	birds := NewBirds(lines)
 	isPhaseOne := true
-	for r := 0; r < rounds; r++ {
+	r := 0
+	for r < rounds {
 		continuePhaseOne := false
-		if isPhaseOne && birds.PhaseOne(continuePhaseOne) {
+		if isPhaseOne && birds.PhaseOne(&r, continuePhaseOne) {
 			continue
 		}
 		isPhaseOne = false
-		birds.PhaseTwo()
+		birds.PhaseTwo(&r)
 	}
 	return birds.Checksum()
 }
@@ -33,19 +34,29 @@ func part2(lines []string) int {
 	birds := NewBirds(lines)
 	isPhaseOne := true
 	rounds := 0
-	for ; !birds.AllEqual(); rounds++ {
+	for !birds.AllEqual() {
 		continuePhaseOne := false
-		if isPhaseOne && birds.PhaseOne(continuePhaseOne) {
+		if isPhaseOne && birds.PhaseOne(&rounds, continuePhaseOne) {
 			continue
 		}
 		isPhaseOne = false
-		birds.PhaseTwo()
+		birds.PhaseTwo(&rounds)
 	}
 	return rounds
 }
 
 func part3(lines []string) int {
-	return len(lines)
+	birds := NewBirds(lines)
+	isPhaseOne := true
+	rounds := 0
+	for isPhaseOne {
+		continuePhaseOne := false
+		if !birds.PhaseOne(&rounds, continuePhaseOne) {
+			isPhaseOne = false
+		}
+	}
+	birds.PhaseTwoWithMath(&rounds)
+	return rounds
 }
 
 type Birds []int
@@ -76,7 +87,7 @@ func (b *Birds) AllEqual() bool {
 	return true
 }
 
-func (b *Birds) PhaseOne(continuePhaseOne bool) bool {
+func (b *Birds) PhaseOne(rounds *int, continuePhaseOne bool) bool {
 	for i := 0; i < len(*b)-1; i++ {
 		if (*b)[i] > (*b)[i+1] {
 			(*b)[i]--
@@ -84,14 +95,33 @@ func (b *Birds) PhaseOne(continuePhaseOne bool) bool {
 			continuePhaseOne = true
 		}
 	}
+	if continuePhaseOne {
+		*rounds++
+	}
 	return continuePhaseOne
 }
 
-func (b *Birds) PhaseTwo() {
+func (b *Birds) PhaseTwo(rounds *int) {
 	for i := 0; i < len(*b)-1; i++ {
 		if (*b)[i] < (*b)[i+1] {
 			(*b)[i]++
 			(*b)[i+1]--
 		}
 	}
+	*rounds++
+}
+
+func (b *Birds) PhaseTwoWithMath(rounds *int) {
+	sum := 0
+	for _, num := range *b {
+		sum += num
+	}
+	mean := sum / len(*b)
+	remainingRounds := 0
+	for _, num := range *b {
+		if num > mean {
+			remainingRounds += num - mean
+		}
+	}
+	*rounds += remainingRounds
 }
