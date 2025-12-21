@@ -16,44 +16,82 @@ func main() {
 }
 
 func part1(lines []string, rounds int) int {
-	birds := make([]int, len(lines))
-	for i, line := range lines {
-		birds[i] = utils.StrToInt(line)
-	}
+	birds := NewBirds(lines)
 	isPhaseOne := true
 	for r := 0; r < rounds; r++ {
 		continuePhaseOne := false
-		if isPhaseOne {
-			for i := 0; i < len(birds)-1; i++ {
-				if birds[i] > birds[i+1] {
-					birds[i]--
-					birds[i+1]++
-					continuePhaseOne = true
-				}
-			}
-			if continuePhaseOne {
-				continue
-			}
-			isPhaseOne = false
+		if isPhaseOne && birds.PhaseOne(continuePhaseOne) {
+			continue
 		}
-		for i := 0; i < len(birds)-1; i++ {
-			if birds[i] < birds[i+1] {
-				birds[i]++
-				birds[i+1]--
-			}
-		}
+		isPhaseOne = false
+		birds.PhaseTwo()
 	}
-	checkSum := 0
-	for i := 0; i < len(birds); i++ {
-		checkSum += (i + 1) * birds[i]
-	}
-	return checkSum
+	return birds.Checksum()
 }
 
 func part2(lines []string) int {
-	return len(lines)
+	birds := NewBirds(lines)
+	isPhaseOne := true
+	rounds := 0
+	for ; !birds.AllEqual(); rounds++ {
+		continuePhaseOne := false
+		if isPhaseOne && birds.PhaseOne(continuePhaseOne) {
+			continue
+		}
+		isPhaseOne = false
+		birds.PhaseTwo()
+	}
+	return rounds
 }
 
 func part3(lines []string) int {
 	return len(lines)
+}
+
+type Birds []int
+
+func NewBirds(lines []string) Birds {
+	birds := make([]int, len(lines))
+	for i, line := range lines {
+		birds[i] = utils.StrToInt(line)
+	}
+	return birds
+}
+
+func (b *Birds) Checksum() int {
+	sum := 0
+	for i := 0; i < len(*b); i++ {
+		sum += (i + 1) * (*b)[i]
+	}
+	return sum
+}
+
+func (b *Birds) AllEqual() bool {
+	first := (*b)[0]
+	for i := 1; i < len(*b); i++ {
+		if (*b)[i] != first {
+			return false
+		}
+	}
+	return true
+}
+
+func (b *Birds) PhaseOne(continuePhaseOne bool) bool {
+	for i := 0; i < len(*b)-1; i++ {
+		if (*b)[i] > (*b)[i+1] {
+			(*b)[i]--
+			(*b)[i+1]++
+			continuePhaseOne = true
+		}
+	}
+	return continuePhaseOne
+}
+
+func (b *Birds) PhaseTwo() {
+	for i := 0; i < len(*b)-1; i++ {
+		if (*b)[i] < (*b)[i+1] {
+			(*b)[i]++
+			(*b)[i+1]--
+		}
+	}
 }
