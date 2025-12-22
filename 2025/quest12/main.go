@@ -3,6 +3,7 @@ package main
 import (
 	"everybody-codes/utils"
 	"fmt"
+	"maps"
 )
 
 func main() {
@@ -20,43 +21,46 @@ func part1(lines []string) int {
 	start := Coordinate{0, 0}
 	queue := []Coordinate{start}
 	visited := map[Coordinate]bool{}
-	count := 0
-	for len(queue) > 0 {
-		igniteBarrels(&queue, grid, &visited, &count)
-	}
-	return count
+	return len(igniteBarrels(&queue, grid, &visited))
 }
 
 func part2(lines []string) int {
 	grid := NewGrid(lines)
-	start := Coordinate{0, 0}
-	end := Coordinate{grid.Rows() - 1, grid.Cols() - 1}
-	startQueue := []Coordinate{start}
-	endQueue := []Coordinate{end}
+	start, end := Coordinate{0, 0}, Coordinate{grid.Rows() - 1, grid.Cols() - 1}
+	queue := []Coordinate{start, end}
 	visited := map[Coordinate]bool{}
-	count := 0
-	for len(startQueue) > 0 && len(endQueue) > 0 {
-		igniteBarrels(&startQueue, grid, &visited, &count)
-		igniteBarrels(&endQueue, grid, &visited, &count)
-	}
-	return count
+	return len(igniteBarrels(&queue, grid, &visited))
 }
 
 func part3(lines []string) int {
-	return len(lines)
+	grid := NewGrid(lines)
+	visited := map[Coordinate]bool{}
+	for i := 0; i < 3; i++ {
+		maxBarrels := map[Coordinate]bool{}
+		for r, row := range *grid {
+			for c := range row {
+				queue := []Coordinate{{r, c}}
+				newVisited := maps.Clone(visited)
+				barrels := igniteBarrels(&queue, grid, &newVisited)
+				if len(barrels) >= len(maxBarrels) {
+					maxBarrels = barrels
+				}
+			}
+		}
+		maps.Copy(visited, maxBarrels)
+	}
+	return len(visited)
 }
 
-func igniteBarrels(queue *[]Coordinate, grid *Grid, visited *map[Coordinate]bool, count *int) {
+func igniteBarrels(queue *[]Coordinate, grid *Grid, visited *map[Coordinate]bool) map[Coordinate]bool {
 	dirs := []Coordinate{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}
-	size := len(*queue)
-	for i := 0; i < size; i++ {
+	for len(*queue) > 0 {
 		curr := (*queue)[0]
 		(*queue) = (*queue)[1:]
 		if (*visited)[curr] {
 			continue
 		}
 		(*visited)[curr] = true
-		*count++
 		for _, dir := range dirs {
 			next := Coordinate{curr.Y + dir.Y, curr.X + dir.X}
 			if !grid.IsInBounds(next) {
@@ -67,6 +71,7 @@ func igniteBarrels(queue *[]Coordinate, grid *Grid, visited *map[Coordinate]bool
 			}
 		}
 	}
+	return *visited
 }
 
 type Coordinate struct {
