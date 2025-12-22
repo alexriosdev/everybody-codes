@@ -3,6 +3,7 @@ package main
 import (
 	"everybody-codes/utils"
 	"fmt"
+	"strings"
 )
 
 func main() {
@@ -31,7 +32,26 @@ func part1(lines []string) int {
 }
 
 func part2(lines []string) int {
-	return len(lines)
+	dial := []int{1}
+	for i, line := range lines {
+		if i%2 == 0 {
+			split := strings.Split(line, "-")
+			start, end := utils.StrToInt(split[0]), utils.StrToInt(split[1])
+			for i := start; i <= end; i++ {
+				dial = append(dial, i)
+			}
+		}
+	}
+	for i := len(lines) - 1; i >= 0; i-- {
+		if i%2 != 0 {
+			split := strings.Split(lines[i], "-")
+			start, end := utils.StrToInt(split[1]), utils.StrToInt(split[0])
+			for j := start; j >= end; j-- {
+				dial = append(dial, j)
+			}
+		}
+	}
+	return dial[20252025%len(dial)]
 }
 
 func part3(lines []string) int {
