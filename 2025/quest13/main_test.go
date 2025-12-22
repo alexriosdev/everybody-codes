@@ -42,14 +42,12 @@ func TestPart2(t *testing.T) {
 }
 
 func TestPart3(t *testing.T) {
-	lines1, _ := utils.ReadLines("input_test3.txt")
-	lines2, _ := utils.ReadLines("input3.txt")
+	lines1, _ := utils.ReadLines("input3.txt")
 	tests := []struct {
 		input    []string
 		expected int
 	}{
-		{lines1, 0},
-		{lines2, 0},
+		{lines1, 503841},
 	}
 	for _, test := range tests {
 		result := part3(test.input)
