@@ -26,7 +26,9 @@ func part2(lines []string) int {
 }
 
 func part3(lines []string) int {
-	return len(lines)
+	grid := BuildGrid(34, 34)
+	pattern := NewGrid(lines)
+	return grid.GetActiveTilePatternSum(pattern, 1_000_000_000)
 }
 
 type Coordinate struct {
@@ -41,6 +43,103 @@ func NewGrid(lines []string) *Grid {
 		*grid = append(*grid, []rune(line))
 	}
 	return grid
+}
+
+func BuildGrid(rows, cols int) *Grid {
+	grid := &Grid{}
+	for r := 0; r < rows; r++ {
+		runes := []rune{}
+		for c := 0; c < cols; c++ {
+			runes = append(runes, '.')
+		}
+		*grid = append(*grid, runes)
+	}
+	return grid
+}
+
+func (g *Grid) Clone() *Grid {
+	grid := &Grid{}
+	for _, row := range *g {
+		newRow := make([]rune, len(row))
+		copy(newRow, row)
+		*grid = append(*grid, newRow)
+	}
+	return grid
+}
+
+func (g *Grid) Compare(target *Grid) bool {
+	for i, row := range *g {
+		for c, val := range row {
+			if !target.Equals(Coordinate{i, c}, val) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (g *Grid) IsMatch(pattern *Grid) bool {
+	startY := (g.Rows() - pattern.Rows()) / 2
+	startX := (g.Cols() - pattern.Cols()) / 2
+	for r, row := range *pattern {
+		for c, val := range row {
+			curr := Coordinate{startY + r, startX + c}
+			if !g.Equals(curr, val) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (g *Grid) GetActiveTilePatternSum(pattern *Grid, rounds int) int {
+	dirs := []Coordinate{{-1, -1}, {-1, 1}, {1, 1}, {1, -1}}
+	var first Grid
+	sum := 0
+	for i := 0; i < rounds; i++ {
+		nextActive := []Coordinate{}
+		nextInactive := []Coordinate{}
+		for r, row := range *g {
+			for c, val := range row {
+				count := 0
+				curr := Coordinate{r, c}
+				for _, dir := range dirs {
+					next := Coordinate{curr.Y + dir.Y, curr.X + dir.X}
+					if !g.IsInBounds(next) {
+						continue
+					}
+					if g.Equals(next, '#') {
+						count++
+					}
+				}
+				if (val == '#' && count%2 != 0) || (val == '.' && count%2 == 0) {
+					nextActive = append(nextActive, curr)
+					continue
+				}
+				nextInactive = append(nextInactive, curr)
+			}
+		}
+		for _, next := range nextActive {
+			g.Update(next, '#')
+		}
+		for _, next := range nextInactive {
+			g.Update(next, '.')
+		}
+		if g.IsMatch(pattern) {
+			sum += len(nextActive)
+		}
+		if first != nil && g.Compare(&first) {
+			cycles := (rounds - i) / i
+			rem := rounds % i
+			i = rounds - rem
+			sum *= cycles + 1
+			continue
+		}
+		if first == nil {
+			first = *g.Clone()
+		}
+	}
+	return sum
 }
 
 func (g *Grid) GetActiveTileSum(rounds int) int {
@@ -88,8 +187,16 @@ func (g *Grid) Equals(c Coordinate, val rune) bool {
 	return (*g)[c.Y][c.X] == val
 }
 
+func (g *Grid) Rows() int {
+	return len(*g)
+}
+
+func (g *Grid) Cols() int {
+	return len((*g)[0])
+}
+
 func (g *Grid) IsInBounds(c Coordinate) bool {
-	return 0 <= c.Y && c.Y < len(*g) && 0 <= c.X && c.X < len((*g)[0])
+	return 0 <= c.Y && c.Y < g.Rows() && 0 <= c.X && c.X < g.Cols()
 }
 
 func (g *Grid) Display() {

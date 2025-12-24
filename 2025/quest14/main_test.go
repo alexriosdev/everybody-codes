@@ -46,8 +46,8 @@ func TestPart3(t *testing.T) {
 		input    []string
 		expected int
 	}{
-		{lines1, 0},
-		{lines2, 0},
+		{lines1, 278388552},
+		{lines2, 1200487200},
 	}
 	for _, test := range tests {
 		result := part3(test.input)
