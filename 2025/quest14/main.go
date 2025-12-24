@@ -93,40 +93,12 @@ func (g *Grid) IsMatch(pattern *Grid) bool {
 }
 
 func (g *Grid) GetActiveTilePatternSum(pattern *Grid, rounds int) int {
-	dirs := []Coordinate{{-1, -1}, {-1, 1}, {1, 1}, {1, -1}}
 	var first Grid
 	sum := 0
 	for i := 0; i < rounds; i++ {
-		nextActive := []Coordinate{}
-		nextInactive := []Coordinate{}
-		for r, row := range *g {
-			for c, val := range row {
-				count := 0
-				curr := Coordinate{r, c}
-				for _, dir := range dirs {
-					next := Coordinate{curr.Y + dir.Y, curr.X + dir.X}
-					if !g.IsInBounds(next) {
-						continue
-					}
-					if g.Equals(next, '#') {
-						count++
-					}
-				}
-				if (val == '#' && count%2 != 0) || (val == '.' && count%2 == 0) {
-					nextActive = append(nextActive, curr)
-					continue
-				}
-				nextInactive = append(nextInactive, curr)
-			}
-		}
-		for _, next := range nextActive {
-			g.Update(next, '#')
-		}
-		for _, next := range nextInactive {
-			g.Update(next, '.')
-		}
+		activeTiles := g.ActivateTiles()
 		if g.IsMatch(pattern) {
-			sum += len(nextActive)
+			sum += len(activeTiles)
 		}
 		if first != nil && g.Compare(&first) {
 			cycles := (rounds - i) / i
@@ -143,40 +115,45 @@ func (g *Grid) GetActiveTilePatternSum(pattern *Grid, rounds int) int {
 }
 
 func (g *Grid) GetActiveTileSum(rounds int) int {
-	dirs := []Coordinate{{-1, -1}, {-1, 1}, {1, 1}, {1, -1}}
 	sum := 0
 	for i := 0; i < rounds; i++ {
-		nextActive := []Coordinate{}
-		nextInactive := []Coordinate{}
-		for r, row := range *g {
-			for c, val := range row {
-				count := 0
-				curr := Coordinate{r, c}
-				for _, dir := range dirs {
-					next := Coordinate{curr.Y + dir.Y, curr.X + dir.X}
-					if !g.IsInBounds(next) {
-						continue
-					}
-					if g.Equals(next, '#') {
-						count++
-					}
-				}
-				if (val == '#' && count%2 != 0) || (val == '.' && count%2 == 0) {
-					nextActive = append(nextActive, curr)
-					continue
-				}
-				nextInactive = append(nextInactive, curr)
-			}
-		}
-		for _, next := range nextActive {
-			g.Update(next, '#')
-		}
-		for _, next := range nextInactive {
-			g.Update(next, '.')
-		}
-		sum += len(nextActive)
+		activeTiles := g.ActivateTiles()
+		sum += len(activeTiles)
 	}
 	return sum
+}
+
+func (g *Grid) ActivateTiles() []Coordinate {
+	dirs := []Coordinate{{-1, -1}, {-1, 1}, {1, 1}, {1, -1}}
+	activeTiles := []Coordinate{}
+	inactiveTiles := []Coordinate{}
+	for r, row := range *g {
+		for c, val := range row {
+			count := 0
+			curr := Coordinate{r, c}
+			for _, dir := range dirs {
+				next := Coordinate{curr.Y + dir.Y, curr.X + dir.X}
+				if !g.IsInBounds(next) {
+					continue
+				}
+				if g.Equals(next, '#') {
+					count++
+				}
+			}
+			if (val == '#' && count%2 != 0) || (val == '.' && count%2 == 0) {
+				activeTiles = append(activeTiles, curr)
+				continue
+			}
+			inactiveTiles = append(inactiveTiles, curr)
+		}
+	}
+	for _, tile := range activeTiles {
+		g.Update(tile, '#')
+	}
+	for _, tile := range inactiveTiles {
+		g.Update(tile, '.')
+	}
+	return activeTiles
 }
 
 func (g *Grid) Update(c Coordinate, val rune) {
