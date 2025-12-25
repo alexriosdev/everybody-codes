@@ -9,15 +9,27 @@ import (
 
 func main() {
 	line1, _ := utils.ReadLine("2025/quest15/input1.txt")
-	lines2, _ := utils.ReadLines("2025/quest15/input2.txt")
+	line2, _ := utils.ReadLine("2025/quest15/input2.txt")
 	lines3, _ := utils.ReadLines("2025/quest15/input3.txt")
 	fmt.Println("2025 Quest 15 Solution")
 	fmt.Printf("Part 1: %v\n", part1(line1))
-	fmt.Printf("Part 2: %v\n", part2(lines2))
+	fmt.Printf("Part 2: %v\n", part2(line2))
 	fmt.Printf("Part 3: %v\n", part3(lines3))
 }
 
 func part1(line string) int {
+	return NavigateMaze(line)
+}
+
+func part2(line string) int {
+	return NavigateMaze(line)
+}
+
+func part3(lines []string) int {
+	return len(lines)
+}
+
+func NavigateMaze(line string) int {
 	const (
 		Up = iota
 		Right
@@ -60,14 +72,6 @@ func part1(line string) int {
 	grid := BuildGrid(rows, cols)
 	grid.BuildPath(positions)
 	return grid.FindShortestPathLength(positions[0], positions[len(positions)-1])
-}
-
-func part2(lines []string) int {
-	return len(lines)
-}
-
-func part3(lines []string) int {
-	return len(lines)
 }
 
 type State struct {

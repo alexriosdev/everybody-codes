@@ -26,14 +26,12 @@ func TestPart1(t *testing.T) {
 }
 
 func TestPart2(t *testing.T) {
-	lines1, _ := utils.ReadLines("input_test2.txt")
-	lines2, _ := utils.ReadLines("input2.txt")
+	line, _ := utils.ReadLine("input2.txt")
 	tests := []struct {
-		input    []string
+		input    string
 		expected int
 	}{
-		{lines1, 0},
-		{lines2, 0},
+		{line, 3331},
 	}
 	for _, test := range tests {
 		result := part2(test.input)
@@ -69,9 +67,9 @@ func BenchmarkPart1(b *testing.B) {
 }
 
 func BenchmarkPart2(b *testing.B) {
-	lines, _ := utils.ReadLines("input2.txt")
+	line, _ := utils.ReadLine("input2.txt")
 	for n := 0; n < b.N; n++ {
-		part2(lines)
+		part2(line)
 	}
 }
 
