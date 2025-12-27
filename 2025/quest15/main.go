@@ -20,18 +20,18 @@ func main() {
 }
 
 func part1(line string) int {
-	return NavigateMaze(line)
+	return NavigateMaze(line, false)
 }
 
 func part2(line string) int {
-	return NavigateMaze(line)
+	return NavigateMaze(line, false)
 }
 
 func part3(line string) int {
-	return NavigateCompressedMaze(line)
+	return NavigateMaze(line, true)
 }
 
-func NavigateMaze(line string) int {
+func NavigateMaze(line string, useCoordinateCompression bool) int {
 	const (
 		Up = iota
 		Right
@@ -40,7 +40,7 @@ func NavigateMaze(line string) int {
 	)
 	var Origin = Coordinate{0, 0}
 	curr := State{Origin, Up}
-	positions := []Coordinate{curr.Pos}
+	positions := Coordinates{curr.Pos}
 	for _, s := range strings.Split(line, ",") {
 		dir, steps := s[0], utils.StrToInt(s[1:])
 		if dir == 'R' {
@@ -59,6 +59,9 @@ func NavigateMaze(line string) int {
 			curr.Pos.X -= steps
 		}
 		positions = append(positions, curr.Pos)
+	}
+	if useCoordinateCompression {
+		return positions.FindShortestDistance()
 	}
 	minY, maxY := math.MaxInt, math.MinInt
 	minX, maxX := math.MaxInt, math.MinInt
@@ -73,39 +76,7 @@ func NavigateMaze(line string) int {
 	}
 	grid := BuildGrid(rows, cols)
 	grid.BuildWall(positions)
-	return grid.FindShortestPathLength(positions[0], positions[len(positions)-1])
-}
-
-func NavigateCompressedMaze(line string) int {
-	const (
-		Up = iota
-		Right
-		Down
-		Left
-	)
-	var Origin = Coordinate{0, 0}
-	curr := State{Origin, Up}
-	positions := []Coordinate{curr.Pos}
-	for _, s := range strings.Split(line, ",") {
-		dir, steps := s[0], utils.StrToInt(s[1:])
-		if dir == 'R' {
-			curr.Dir = (curr.Dir + 1) % 4
-		} else {
-			curr.Dir = (curr.Dir + 3) % 4
-		}
-		switch curr.Dir {
-		case Up:
-			curr.Pos.Y -= steps
-		case Right:
-			curr.Pos.X += steps
-		case Down:
-			curr.Pos.Y += steps
-		case Left:
-			curr.Pos.X -= steps
-		}
-		positions = append(positions, curr.Pos)
-	}
-	return FindShortestPathLength(positions)
+	return grid.FindShortestDistance(positions[0], positions[len(positions)-1])
 }
 
 type State struct {
@@ -117,38 +88,51 @@ type Coordinate struct {
 	Y, X int
 }
 
-func CompressCoordinates(coordinates []Coordinate) ([2]map[int]int, [2][]int) {
+type Coordinates []Coordinate
+
+type CompressedCoordinates struct {
+	OriginalY, OriginalX     []int
+	CompressedY, CompressedX map[int]int
+}
+
+func (c *Coordinates) Compress() CompressedCoordinates {
+	dirs := []Coordinate{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}
 	setY, setX := map[int]bool{}, map[int]bool{}
-	for _, coord := range coordinates {
-		for _, dir := range []Coordinate{{-1, 0}, {0, 1}, {1, 0}, {0, -1}} {
+	for _, coord := range *c {
+		for _, dir := range dirs {
 			next := Coordinate{coord.Y + dir.Y, coord.X + dir.X}
 			setY[next.Y] = true
 			setX[next.X] = true
 		}
 	}
-	uniqueY, uniqueX := []int{}, []int{}
+	originalY, originalX := []int{}, []int{}
 	for y := range setY {
-		uniqueY = append(uniqueY, y)
+		originalY = append(originalY, y)
 	}
 	for x := range setX {
-		uniqueX = append(uniqueX, x)
+		originalX = append(originalX, x)
 	}
-	sort.Ints(uniqueY)
-	sort.Ints(uniqueX)
-	mapY, mapX := make(map[int]int), make(map[int]int)
-	for i, val := range uniqueY {
-		mapY[val] = i
+	sort.Ints(originalY)
+	sort.Ints(originalX)
+	compressedY, compressedX := make(map[int]int), make(map[int]int)
+	for i, y := range originalY {
+		compressedY[y] = i
 	}
-	for i, val := range uniqueX {
-		mapX[val] = i
+	for i, x := range originalX {
+		compressedX[x] = i
 	}
-	return [2]map[int]int{mapY, mapX}, [2][]int{uniqueY, uniqueX}
+	return CompressedCoordinates{
+		OriginalY:   originalY,
+		OriginalX:   originalX,
+		CompressedY: compressedY,
+		CompressedX: compressedX,
+	}
 }
 
-func BuildWall(positions []Coordinate) map[Coordinate]bool {
+func (c *Coordinates) BuildWall() map[Coordinate]bool {
 	wall := map[Coordinate]bool{}
-	curr := positions[0]
-	for _, pos := range positions {
+	curr := (*c)[0]
+	for _, pos := range *c {
 		if Abs(pos.Y-curr.Y) != 0 {
 			for startY, endY := min(pos.Y, curr.Y), max(pos.Y, curr.Y); startY <= endY; startY++ {
 				next := Coordinate{startY, pos.X}
@@ -164,21 +148,20 @@ func BuildWall(positions []Coordinate) map[Coordinate]bool {
 		curr = pos
 	}
 	wall[curr] = false
-	wall[positions[0]] = false
+	wall[(*c)[0]] = false
 	return wall
 }
 
-func FindShortestPathLength(positions []Coordinate) int {
-	maps, uniques := CompressCoordinates(positions)
-	mapY, mapX := maps[0], maps[1]
-	uniqueY, uniqueX := uniques[0], uniques[1]
-	for i, pos := range positions {
-		positions[i].Y = mapY[pos.Y]
-		positions[i].X = mapX[pos.X]
+func (coordinates *Coordinates) FindShortestDistance() int {
+	dirs := []Coordinate{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}
+	cc := (*coordinates).Compress()
+	for i, pos := range *coordinates {
+		(*coordinates)[i].Y = cc.CompressedY[pos.Y]
+		(*coordinates)[i].X = cc.CompressedX[pos.X]
 	}
-	wall := BuildWall(positions)
-	var Start = positions[0]
-	var End = positions[len(positions)-1]
+	wall := (*coordinates).BuildWall()
+	var Start = (*coordinates)[0]
+	var End = (*coordinates)[len((*coordinates))-1]
 	pq := &PriorityQueue{}
 	heap.Init(pq)
 	heap.Push(pq, &Item{Pos: Start, Dist: 0})
@@ -192,15 +175,15 @@ func FindShortestPathLength(positions []Coordinate) int {
 		if curr.Dist < dist[curr.Pos] {
 			continue
 		}
-		for _, dir := range []Coordinate{{-1, 0}, {0, 1}, {1, 0}, {0, -1}} {
+		for _, dir := range dirs {
 			next := Coordinate{curr.Pos.Y + dir.Y, curr.Pos.X + dir.X}
-			if !(0 <= next.Y && next.Y < len(uniqueY) && 0 <= next.X && next.X < len(uniqueX)) {
+			if !(0 <= next.Y && next.Y < len(cc.OriginalY) && 0 <= next.X && next.X < len(cc.OriginalX)) {
 				continue
 			}
 			if wall[next] {
 				continue
 			}
-			nextDist := curr.Dist + Abs(uniqueY[curr.Pos.Y]-uniqueY[next.Y]) + Abs(uniqueX[curr.Pos.X]-uniqueX[next.X])
+			nextDist := curr.Dist + Abs(cc.OriginalY[curr.Pos.Y]-cc.OriginalY[next.Y]) + Abs(cc.OriginalX[curr.Pos.X]-cc.OriginalX[next.X])
 			if prevDist, ok := dist[next]; !ok || nextDist < prevDist {
 				dist[next] = nextDist
 				heap.Push(pq, &Item{Pos: next, Dist: nextDist})
@@ -245,7 +228,7 @@ func (g *Grid) BuildWall(positions []Coordinate) {
 	g.Update(positions[0], 'S')
 }
 
-func (g *Grid) FindShortestPathLength(start, end Coordinate) int {
+func (g *Grid) FindShortestDistance(start, end Coordinate) int {
 	dirs := []Coordinate{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}
 	queue := []Coordinate{start}
 	visited := map[Coordinate]bool{}
