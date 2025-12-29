@@ -8,11 +8,11 @@ import (
 
 func main() {
 	line1, _ := utils.ReadLine("2025/quest16/input1.txt")
-	lines2, _ := utils.ReadLines("2025/quest16/input2.txt")
+	line2, _ := utils.ReadLine("2025/quest16/input2.txt")
 	lines3, _ := utils.ReadLines("2025/quest16/input3.txt")
 	fmt.Println("2025 Quest 16 Solution")
 	fmt.Printf("Part 1: %v\n", part1(line1))
-	fmt.Printf("Part 2: %v\n", part2(lines2))
+	fmt.Printf("Part 2: %v\n", part2(line2))
 	fmt.Printf("Part 3: %v\n", part3(lines3))
 }
 
@@ -25,8 +25,26 @@ func part1(line string) int {
 	return sum
 }
 
-func part2(lines []string) int {
-	return len(lines)
+func part2(line string) int {
+	wall := []int{}
+	for _, s := range strings.Split(line, ",") {
+		wall = append(wall, utils.StrToInt(s))
+	}
+	spell := []int{}
+	for i := range wall {
+		if wall[i] == 0 {
+			continue
+		}
+		spell = append(spell, i+1)
+		for j := i; j < len(wall); j += i + 1 {
+			wall[j]--
+		}
+	}
+	result := 1
+	for _, charm := range spell {
+		result *= charm
+	}
+	return result
 }
 
 func part3(lines []string) int {
