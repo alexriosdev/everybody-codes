@@ -3,6 +3,7 @@ package main
 import (
 	"everybody-codes/utils"
 	"fmt"
+	"math"
 )
 
 func main() {
@@ -52,7 +53,44 @@ func part1(lines []string) int {
 }
 
 func part2(lines []string) int {
-	return len(lines)
+	dirs := []Coordinate{{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}
+	grid := NewGrid(lines)
+	volcano := grid.Get('@')
+	queue := []Coordinate{volcano}
+	visited := map[Coordinate]bool{}
+	maxSum := math.MinInt
+	result := 0
+	rad := 0
+	for len(queue) > 0 {
+		sum := 0
+		size := len(queue)
+		for i := 0; i < size; i++ {
+			curr := queue[0]
+			queue = queue[1:]
+			if visited[curr] {
+				continue
+			}
+			visited[curr] = true
+			if curr != volcano {
+				sum += int((*grid)[curr.Y][curr.X] - '0')
+			}
+			for _, dir := range dirs {
+				next := Coordinate{curr.Y + dir.Y, curr.X + dir.X}
+				if !grid.IsInBounds(next) {
+					continue
+				}
+				if IsInRadius(volcano, next, rad+1) {
+					queue = append(queue, next)
+				}
+			}
+		}
+		if sum > maxSum {
+			maxSum = sum
+			result = rad * sum
+		}
+		rad++
+	}
+	return result
 }
 
 func part3(lines []string) int {
