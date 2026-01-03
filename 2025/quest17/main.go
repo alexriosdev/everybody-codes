@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/heap"
 	"everybody-codes/utils"
 	"fmt"
 	"math"
@@ -21,6 +22,7 @@ func part1(lines []string) int {
 	radius := 10
 	grid := NewGrid(lines)
 	volcano := grid.Get('@')
+	grid.Update(volcano, '0')
 	queue := []Coordinate{volcano}
 	visited := map[Coordinate]bool{}
 	rad := 0
@@ -34,9 +36,7 @@ func part1(lines []string) int {
 				continue
 			}
 			visited[curr] = true
-			if curr != volcano {
-				sum += int((*grid)[curr.Y][curr.X] - '0')
-			}
+			sum += int((*grid)[curr.Y][curr.X] - '0')
 			for _, dir := range dirs {
 				next := Coordinate{curr.Y + dir.Y, curr.X + dir.X}
 				if !grid.IsInBounds(next) {
@@ -56,6 +56,7 @@ func part2(lines []string) int {
 	dirs := []Coordinate{{-1, -1}, {-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}}
 	grid := NewGrid(lines)
 	volcano := grid.Get('@')
+	grid.Update(volcano, '0')
 	queue := []Coordinate{volcano}
 	visited := map[Coordinate]bool{}
 	maxSum := math.MinInt
@@ -71,9 +72,7 @@ func part2(lines []string) int {
 				continue
 			}
 			visited[curr] = true
-			if curr != volcano {
-				sum += int((*grid)[curr.Y][curr.X] - '0')
-			}
+			sum += int((*grid)[curr.Y][curr.X] - '0')
 			for _, dir := range dirs {
 				next := Coordinate{curr.Y + dir.Y, curr.X + dir.X}
 				if !grid.IsInBounds(next) {
@@ -94,7 +93,24 @@ func part2(lines []string) int {
 }
 
 func part3(lines []string) int {
-	return len(lines)
+	grid := NewGrid(lines)
+	volcano := grid.Get('@')
+	start := grid.Get('S')
+	grid.Update(volcano, '0')
+	grid.Update(start, '0')
+	for rad := 0; rad <= grid.Rows()/2; rad++ {
+		end := Coordinate{volcano.Y + rad + 1, volcano.X}
+		leftEnd := Coordinate{end.Y, end.X - 1}
+		rightEnd := Coordinate{end.Y, end.X + 1}
+		minTime := (rad + 1) * 30
+		leftDist := grid.FindShortestDistance(start, leftEnd, volcano, rad)
+		rightDist := grid.FindShortestDistance(start, rightEnd, volcano, rad)
+		sum := leftDist + rightDist + int((*grid)[end.Y][end.X]-'0')
+		if sum < minTime {
+			return rad * sum
+		}
+	}
+	return 0
 }
 
 type Coordinate struct {
@@ -113,6 +129,38 @@ func NewGrid(lines []string) *Grid {
 		*grid = append(*grid, []rune(line))
 	}
 	return grid
+}
+
+func (g *Grid) FindShortestDistance(start, end, volcano Coordinate, rad int) int {
+	dirs := []Coordinate{{-1, 0}, {0, 1}, {1, 0}, {0, -1}}
+	pq := &PriorityQueue{}
+	heap.Init(pq)
+	heap.Push(pq, &Item{Pos: start, Dist: 0})
+	dist := map[Coordinate]int{start: 0}
+	for pq.Len() > 0 {
+		curr := heap.Pop(pq).(*Item)
+		if curr.Pos == end {
+			return curr.Dist
+		}
+		for _, dir := range dirs {
+			next := Coordinate{curr.Pos.Y + dir.Y, curr.Pos.X + dir.X}
+			if !g.IsInBounds(next) {
+				continue
+			}
+			if IsInRadius(volcano, next, rad) {
+				continue
+			}
+			if next.X == volcano.X && next.Y > volcano.Y {
+				continue
+			}
+			nextDist := curr.Dist + int((*g)[next.Y][next.X]-'0')
+			if prevDist, ok := dist[next]; !ok && (nextDist < prevDist || prevDist == 0) {
+				dist[next] = nextDist
+				heap.Push(pq, &Item{Pos: next, Dist: nextDist})
+			}
+		}
+	}
+	return -1
 }
 
 func (g *Grid) Get(target rune) Coordinate {
@@ -146,8 +194,16 @@ func (g *Grid) Equals(c Coordinate, val rune) bool {
 	return (*g)[c.Y][c.X] == val
 }
 
+func (g *Grid) Rows() int {
+	return len(*g)
+}
+
+func (g *Grid) Cols() int {
+	return len((*g)[0])
+}
+
 func (g *Grid) IsInBounds(c Coordinate) bool {
-	return 0 <= c.Y && c.Y < len(*g) && 0 <= c.X && c.X < len((*g)[0])
+	return 0 <= c.Y && c.Y < g.Rows() && 0 <= c.X && c.X < g.Cols()
 }
 
 func (g *Grid) Display() {
@@ -155,4 +211,26 @@ func (g *Grid) Display() {
 		fmt.Println(string(row))
 	}
 	fmt.Println()
+}
+
+type Item struct {
+	Pos  Coordinate
+	Dist int
+}
+
+type PriorityQueue []*Item
+
+func (pq PriorityQueue) Len() int           { return len(pq) }
+func (pq PriorityQueue) Less(i, j int) bool { return pq[i].Dist < pq[j].Dist }
+func (pq PriorityQueue) Swap(i, j int)      { pq[i], pq[j] = pq[j], pq[i] }
+func (pq *PriorityQueue) Push(x interface{}) {
+	item := x.(*Item)
+	*pq = append(*pq, item)
+}
+func (pq *PriorityQueue) Pop() interface{} {
+	old := *pq
+	n := len(old)
+	item := old[n-1]
+	*pq = old[:n-1]
+	return item
 }
